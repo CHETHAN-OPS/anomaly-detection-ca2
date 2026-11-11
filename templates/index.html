@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Unsupervised Anomaly Detection Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Unsupervised Anomaly Detection System</h1>
+            <p>CA2 Project Dashboard – Powered by Isolation Forest</p>
+        </header>
+
+        <div class="metrics-grid">
+            <div class="card">
+                <h3>Total Records</h3>
+                <p id="totalRec">Loading...</p>
+            </div>
+            <div class="card alert">
+                <h3>Anomalies Detected</h3>
+                <p id="totalAnom">Loading...</p>
+            </div>
+        </div>
+
+        <section class="table-section">
+            <h2>Detected Outliers & Data Stream</h2>
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr id="tableHeaders"></tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        fetch('/api/data')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('totalRec').innerText = data.total_records;
+                document.getElementById('totalAnom').innerText = data.total_anomalies;
+
+                const records = data.records;
+                if (records.length > 0) {
+                    const headers = Object.keys(records[0]);
+                    const headerTr = document.getElementById('tableHeaders');
+                    headers.forEach(h => {
+                        let th = document.createElement('th');
+                        th.innerText = h;
+                        headerTr.appendChild(th);
+                    });
+
+                    const tbody = document.getElementById('tableBody');
+                    records.forEach(row => {
+                        let tr = document.createElement('tr');
+                        if (row['Status'] === 'Anomaly') {
+                            tr.style.backgroundColor = '#ffe6e6';
+                        }
+                        headers.forEach(h => {
+                            let td = document.createElement('td');
+                            td.innerText = typeof row[h] === 'number' ? row[h].toFixed(2) : row[h];
+                            tr.appendChild(td);
+                        });
+                        tbody.appendChild(tr);
+                    });
+                }
+            });
+    </script>
+</body>
+</html>
